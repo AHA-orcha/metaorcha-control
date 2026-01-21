@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_manifests: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          manifest_data: Json | null
+          manifest_url: string | null
+          name: string
+          status: string
+          updated_at: string
+          user_id: string
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          manifest_data?: Json | null
+          manifest_url?: string | null
+          name: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          version?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          manifest_data?: Json | null
+          manifest_url?: string | null
+          name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          version?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

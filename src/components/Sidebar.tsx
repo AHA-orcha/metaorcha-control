@@ -1,21 +1,27 @@
-import { LayoutDashboard, Plus, Activity, Key } from "lucide-react";
+import { LayoutDashboard, Plus, Activity, Key, Code2, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface SidebarProps {
-  activeItem: string;
-  onNavigate: (item: string) => void;
-}
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
-  { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { id: "new-workflow", icon: Plus, label: "New Workflow" },
-  { id: "activity", icon: Activity, label: "Activity Log" },
-  { id: "credentials", icon: Key, label: "Credentials" },
+  { id: "/", icon: LayoutDashboard, label: "Dashboard" },
+  { id: "/developer", icon: Code2, label: "Developer Portal" },
+  { id: "/activity", icon: Activity, label: "Activity Log" },
+  { id: "/credentials", icon: Key, label: "Credentials" },
 ];
 
-export const Sidebar = ({ activeItem, onNavigate }: SidebarProps) => {
+export const Sidebar = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { signOut, role } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
+
   return (
-    <aside className="w-16 h-screen border-r border-border bg-background flex flex-col items-center py-6 fixed left-0 top-0">
+    <aside className="w-16 h-screen border-r border-border bg-background flex flex-col items-center py-6 fixed left-0 top-0 z-50">
       {/* Logo */}
       <div className="mb-8">
         <div className="w-8 h-8 bg-foreground rounded-sm flex items-center justify-center">
@@ -27,12 +33,12 @@ export const Sidebar = ({ activeItem, onNavigate }: SidebarProps) => {
       <nav className="flex flex-col gap-2 flex-1">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = activeItem === item.id;
+          const isActive = location.pathname === item.id;
           
           return (
             <button
               key={item.id}
-              onClick={() => onNavigate(item.id)}
+              onClick={() => navigate(item.id)}
               className={cn(
                 "w-10 h-10 flex items-center justify-center rounded-sm transition-colors",
                 isActive 
@@ -53,10 +59,26 @@ export const Sidebar = ({ activeItem, onNavigate }: SidebarProps) => {
         })}
       </nav>
 
-      {/* Protocol Version */}
-      <div className="text-[10px] text-muted-foreground font-mono">
-        v0.1
+      {/* Role Badge & Sign Out */}
+      <div className="flex flex-col items-center gap-2">
+        {role && (
+          <div className="text-[9px] text-muted-foreground font-mono uppercase px-1 py-0.5 bg-secondary rounded">
+            {role}
+          </div>
+        )}
+        <button
+          onClick={handleSignOut}
+          className="w-10 h-10 flex items-center justify-center rounded-sm hover:bg-destructive/10 transition-colors"
+          title="Sign Out"
+        >
+          <LogOut className="w-5 h-5 text-muted-foreground" strokeWidth={1.5} />
+        </button>
+        <div className="text-[10px] text-muted-foreground font-mono">
+          v0.1
+        </div>
       </div>
     </aside>
   );
 };
+
+export default Sidebar;
