@@ -35,7 +35,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Key, Plus, Copy, Trash2, Clock, Check, Eye, EyeOff } from "lucide-react";
+import { Key, Plus, Copy, Trash2, Clock, Check, Eye, EyeOff, AlertTriangle } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { addDays, addMonths, addYears, differenceInDays, isPast } from "date-fns";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
@@ -50,6 +58,39 @@ interface Credential {
   created_at: string;
   is_active: boolean;
 }
+
+const EXPIRATION_OPTIONS = [
+  { value: "never", label: "Never expires" },
+  { value: "30", label: "30 days" },
+  { value: "90", label: "90 days" },
+  { value: "180", label: "6 months" },
+  { value: "365", label: "1 year" },
+] as const;
+
+const getExpirationDate = (option: string): string | null => {
+  const today = new Date();
+  switch (option) {
+    case "30":
+      return addDays(today, 30).toISOString();
+    case "90":
+      return addDays(today, 90).toISOString();
+    case "180":
+      return addMonths(today, 6).toISOString();
+    case "365":
+      return addYears(today, 1).toISOString();
+    default:
+      return null;
+  }
+};
+
+const getExpiryStatus = (expiresAt: string | null): { status: "ok" | "warning" | "expired"; daysLeft: number | null } => {
+  if (!expiresAt) return { status: "ok", daysLeft: null };
+  const expiryDate = new Date(expiresAt);
+  if (isPast(expiryDate)) return { status: "expired", daysLeft: 0 };
+  const daysLeft = differenceInDays(expiryDate, new Date());
+  if (daysLeft <= 7) return { status: "warning", daysLeft };
+  return { status: "ok", daysLeft };
+};
 
 const generateApiKey = () => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -75,6 +116,7 @@ const Credentials = () => {
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
+  const [expiration, setExpiration] = useState("never");
   const [generatedKey, setGeneratedKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -112,6 +154,7 @@ const Credentials = () => {
       const apiKey = generateApiKey();
       const keyHash = await hashKey(apiKey);
       const keyPrefix = apiKey.slice(0, 7);
+      const expiresAt = getExpirationDate(expiration);
 
       const { error } = await supabase
         .from('credentials')
@@ -120,6 +163,7 @@ const Credentials = () => {
           name: newKeyName.trim(),
           key_prefix: keyPrefix,
           key_hash: keyHash,
+          expires_at: expiresAt,
         });
 
       if (error) throw error;
@@ -224,6 +268,7 @@ const Credentials = () => {
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setNewKeyName("");
+    setExpiration("never");
     setGeneratedKey(null);
     setCopied(false);
   };
@@ -285,6 +330,21 @@ const Credentials = () => {
                         maxLength={50}
                       />
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="expiration">Expiration</Label>
+                      <Select value={expiration} onValueChange={setExpiration}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select expiration" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {EXPIRATION_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 )}
 
@@ -339,13 +399,16 @@ const Credentials = () => {
                       <TableHead>Name</TableHead>
                       <TableHead>Key</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Expires</TableHead>
                       <TableHead>Created</TableHead>
                       <TableHead>Last Used</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {credentials.map((cred) => (
+                    {credentials.map((cred) => {
+                      const expiryStatus = getExpiryStatus(cred.expires_at);
+                      return (
                       <TableRow key={cred.id}>
                         <TableCell className="font-medium">{cred.name}</TableCell>
                         <TableCell>
@@ -354,14 +417,45 @@ const Credentials = () => {
                           </code>
                         </TableCell>
                         <TableCell>
-                          <Badge 
-                            variant={cred.is_active ? "default" : "secondary"}
-                            className={cred.is_active 
-                              ? "bg-green-500/10 text-green-500 border-green-500/20" 
-                              : ""}
-                          >
-                            {cred.is_active ? "Active" : "Disabled"}
-                          </Badge>
+                          {expiryStatus.status === "expired" ? (
+                            <Badge variant="destructive">Expired</Badge>
+                          ) : (
+                            <Badge 
+                              variant={cred.is_active ? "default" : "secondary"}
+                              className={cred.is_active 
+                                ? "bg-green-500/10 text-green-500 border-green-500/20" 
+                                : ""}
+                            >
+                              {cred.is_active ? "Active" : "Disabled"}
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-sm">
+                          {cred.expires_at ? (
+                            <div className="flex items-center gap-1">
+                              {expiryStatus.status === "warning" && (
+                                <AlertTriangle className="h-3 w-3 text-yellow-500" />
+                              )}
+                              {expiryStatus.status === "expired" && (
+                                <AlertTriangle className="h-3 w-3 text-destructive" />
+                              )}
+                              <span className={
+                                expiryStatus.status === "expired" 
+                                  ? "text-destructive" 
+                                  : expiryStatus.status === "warning" 
+                                    ? "text-yellow-500" 
+                                    : ""
+                              }>
+                                {expiryStatus.status === "expired" 
+                                  ? "Expired"
+                                  : expiryStatus.status === "warning"
+                                    ? `${expiryStatus.daysLeft}d left`
+                                    : format(new Date(cred.expires_at), 'MMM d, yyyy')}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground/50">Never</span>
+                          )}
                         </TableCell>
                         <TableCell className="text-muted-foreground text-sm">
                           {format(new Date(cred.created_at), 'MMM d, yyyy')}
@@ -411,7 +505,8 @@ const Credentials = () => {
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))}
+                      );
+                    })}
                   </TableBody>
                 </Table>
               )}
