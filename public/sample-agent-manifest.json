@@ -1,0 +1,35 @@
+{
+  "name": "PriceOracle-01",
+  "description": "Real-time price aggregation agent for DeFi protocols",
+  "version": "1.0.0",
+  "author": "MetaOrcha Labs",
+  "capabilities": [
+    "price-feed",
+    "data-aggregation",
+    "cross-chain-query"
+  ],
+  "protocols": {
+    "mcp": {
+      "enabled": true,
+      "version": "1.0"
+    },
+    "a2a": {
+      "enabled": true,
+      "discoverable": true
+    }
+  },
+  "permissions": [
+    "read:prices",
+    "read:oracles",
+    "write:cache"
+  ],
+  "endpoints": {
+    "health": "/health",
+    "invoke": "/invoke",
+    "stream": "/stream"
+  },
+  "rateLimit": {
+    "requestsPerMinute": 100,
+    "burstLimit": 20
+  }
+}
