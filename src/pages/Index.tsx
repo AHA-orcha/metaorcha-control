@@ -2,37 +2,28 @@ import { useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { NewWorkflow } from "@/components/NewWorkflow";
 import { LiveExecution } from "@/components/LiveExecution";
+import { useAuth } from "@/contexts/AuthContext";
 
 type View = "new-workflow" | "execution";
 
 const Index = () => {
-  const [activeNav, setActiveNav] = useState("new-workflow");
   const [currentView, setCurrentView] = useState<View>("new-workflow");
   const [executionPrompt, setExecutionPrompt] = useState("");
+  const { user } = useAuth();
 
   const handleInitialize = (prompt: string) => {
     setExecutionPrompt(prompt);
     setCurrentView("execution");
-    setActiveNav("dashboard");
   };
 
   const handleBackToWorkflow = () => {
     setCurrentView("new-workflow");
-    setActiveNav("new-workflow");
     setExecutionPrompt("");
   };
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar 
-        activeItem={activeNav} 
-        onNavigate={(item) => {
-          setActiveNav(item);
-          if (item === "new-workflow") {
-            handleBackToWorkflow();
-          }
-        }} 
-      />
+      <Sidebar />
       
       <main className="ml-16 min-h-screen">
         {/* Top Bar */}
@@ -49,7 +40,7 @@ const Index = () => {
               <span>Connected</span>
             </div>
             <span className="text-border">|</span>
-            <span>0x1a2b...9f8e</span>
+            <span>{user?.email?.slice(0, 8)}...</span>
           </div>
         </header>
 
