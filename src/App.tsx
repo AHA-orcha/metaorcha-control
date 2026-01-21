@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import DeveloperPortal from "./pages/DeveloperPortal";
 import AdminPanel from "./pages/AdminPanel";
 import ActivityLog from "./pages/ActivityLog";
+import Credentials from "./pages/Credentials";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,6 +53,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ActivityLog />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/credentials"
+              element={
+                <ProtectedRoute>
+                  <Credentials />
                 </ProtectedRoute>
               }
             />
