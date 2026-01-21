@@ -1,13 +1,14 @@
-import { LayoutDashboard, Plus, Activity, Key, Code2, LogOut } from "lucide-react";
+import { LayoutDashboard, Plus, Activity, Key, Code2, LogOut, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
-  { id: "/", icon: LayoutDashboard, label: "Dashboard" },
-  { id: "/developer", icon: Code2, label: "Developer Portal" },
-  { id: "/activity", icon: Activity, label: "Activity Log" },
-  { id: "/credentials", icon: Key, label: "Credentials" },
+  { id: "/", icon: LayoutDashboard, label: "Dashboard", roles: ['user', 'developer', 'admin'] },
+  { id: "/developer", icon: Code2, label: "Developer Portal", roles: ['developer', 'admin'] },
+  { id: "/admin", icon: Shield, label: "Admin Panel", roles: ['admin'] },
+  { id: "/activity", icon: Activity, label: "Activity Log", roles: ['user', 'developer', 'admin'] },
+  { id: "/credentials", icon: Key, label: "Credentials", roles: ['user', 'developer', 'admin'] },
 ];
 
 export const Sidebar = () => {
@@ -31,7 +32,9 @@ export const Sidebar = () => {
 
       {/* Navigation */}
       <nav className="flex flex-col gap-2 flex-1">
-        {navItems.map((item) => {
+        {navItems
+          .filter((item) => !role || item.roles.includes(role))
+          .map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.id;
           
