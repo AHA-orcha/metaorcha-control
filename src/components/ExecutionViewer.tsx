@@ -58,24 +58,20 @@ export const ExecutionViewer = ({ prompt, onBack }: ExecutionViewerProps) => {
 
   // SSE connection
   useEffect(() => {
-    const controller = new AbortController();
     const run = async () => {
       try {
-        const resp = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/orchestrate`,
+        // Step 1: Submit workflow and get workflow_id
+        const submitResp = await fetch(
+          `http://localhost:8000/api/v1/workflows`,
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ prompt }),
-            signal: controller.signal,
           }
         );
 
-        if (!resp.ok || !resp.body) {
-          const errText = await resp.text();
+        if (!submitResp.ok) {
+          const errText = await submitResp.text();
           let errMsg = "Workflow submission failed";
           try {
             errMsg = JSON.parse(errText).error || errMsg;
@@ -92,51 +88,64 @@ export const ExecutionViewer = ({ prompt, onBack }: ExecutionViewerProps) => {
           return;
         }
 
-        const reader = resp.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-
-          let nlIdx: number;
-          while ((nlIdx = buffer.indexOf("\n")) !== -1) {
-            const line = buffer.slice(0, nlIdx).trim();
-            buffer = buffer.slice(nlIdx + 1);
-
-            if (!line.startsWith("data: ")) continue;
-            const jsonStr = line.slice(6).trim();
-            if (jsonStr === "[DONE]") break;
-
-            try {
-              const parsed = JSON.parse(jsonStr);
-              const evt: WorkflowEvent = {
-                id: crypto.randomUUID(),
-                workflow_id: parsed.workflow_id || "",
-                event_type: parsed.event_type || "LOG",
-                protocol: parsed.protocol,
-                data: parsed.data,
-                timestamp: parsed.timestamp || new Date().toISOString(),
-              };
-
-              if (parsed.workflow_id && !workflowId) {
-                setWorkflowId(parsed.workflow_id);
-              }
-
-              addEvent(evt);
-
-              if (evt.event_type === "COMPLETED") setStatus("completed");
-              if (evt.event_type === "ERROR") setStatus("error");
-            } catch {}
-          }
+        const { workflow_id } = await submitResp.json();
+        if (!workflow_id) {
+          addEvent({
+            id: crypto.randomUUID(),
+            workflow_id: "",
+            event_type: "ERROR",
+            protocol: "SYSTEM",
+            data: { error: "No workflow ID returned" },
+            timestamp: new Date().toISOString(),
+          });
+          setStatus("error");
+          return;
         }
 
-        // If still running after stream ends without explicit completion
-        setStatus((prev) => (prev === "running" ? "completed" : prev));
+        setWorkflowId(workflow_id);
+
+        // Step 2: Connect to EventSource for streaming events
+        const eventSource = new EventSource(
+          `http://localhost:8000/api/v1/workflows/${workflow_id}/stream`
+        );
+
+        eventSource.onmessage = (event) => {
+          const eventData: WorkflowEvent = JSON.parse(event.data);
+          const evt: WorkflowEvent = {
+            ...eventData,
+            id: crypto.randomUUID(),
+            timestamp: eventData.timestamp || new Date().toISOString(),
+          };
+
+          addEvent(evt);
+
+          if (evt.event_type === "COMPLETED") {
+            setStatus("completed");
+            eventSource.close();
+          }
+          if (evt.event_type === "ERROR") {
+            setStatus("error");
+            eventSource.close();
+          }
+        };
+
+        eventSource.onerror = () => {
+          eventSource.close();
+          if (status === "running") {
+            addEvent({
+              id: crypto.randomUUID(),
+              workflow_id,
+              event_type: "ERROR",
+              protocol: "SYSTEM",
+              data: { error: "Connection to server lost" },
+              timestamp: new Date().toISOString(),
+            });
+            setStatus("error");
+          }
+        };
+
+        return () => eventSource.close();
       } catch (err: unknown) {
-        if (err instanceof Error && err.name === "AbortError") return;
         addEvent({
           id: crypto.randomUUID(),
           workflow_id: "",
@@ -150,8 +159,7 @@ export const ExecutionViewer = ({ prompt, onBack }: ExecutionViewerProps) => {
     };
 
     run();
-    return () => controller.abort();
-  }, [prompt, addEvent]);
+  }, [prompt, addEvent, status]);
 
   const formatTime = (ts: string) => {
     try {
