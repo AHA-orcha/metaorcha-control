@@ -4,11 +4,15 @@ import { ArrowLeft, Check, AlertCircle, Loader2 } from "lucide-react";
 
 export interface WorkflowEvent {
   id: string;
-  type: "LOG" | "COMPLETED" | "ERROR";
-  protocol?: string;
-  message: string;
+  workflow_id: string;
+  event_type: "LOG" | "COMPLETED" | "ERROR";
+  protocol?: "MCP" | "A2A" | "SYSTEM";
+  data?: {
+    message?: string;
+    result?: unknown;
+    error?: string;
+  };
   timestamp: string;
-  result?: unknown;
 }
 
 interface ExecutionViewerProps {
@@ -27,6 +31,13 @@ const eventBorder: Record<string, string> = {
   COMPLETED: "border-l-4 border-l-protocol-green bg-protocol-green/5",
   ERROR: "border-l-4 border-l-destructive bg-destructive/5",
 };
+
+// Helper to get display message from event
+const getEventMessage = (evt: WorkflowEvent): string =>
+  evt.data?.message || evt.data?.error || "";
+
+const getEventResult = (evt: WorkflowEvent): unknown | undefined =>
+  evt.data?.result;
 
 export const ExecutionViewer = ({ prompt, onBack }: ExecutionViewerProps) => {
   const [events, setEvents] = useState<WorkflowEvent[]>([]);
@@ -71,9 +82,10 @@ export const ExecutionViewer = ({ prompt, onBack }: ExecutionViewerProps) => {
           } catch {}
           addEvent({
             id: crypto.randomUUID(),
-            type: "ERROR",
+            workflow_id: "",
+            event_type: "ERROR",
             protocol: "SYSTEM",
-            message: errMsg,
+            data: { error: errMsg },
             timestamp: new Date().toISOString(),
           });
           setStatus("error");
@@ -102,11 +114,11 @@ export const ExecutionViewer = ({ prompt, onBack }: ExecutionViewerProps) => {
               const parsed = JSON.parse(jsonStr);
               const evt: WorkflowEvent = {
                 id: crypto.randomUUID(),
-                type: parsed.type || "LOG",
+                workflow_id: parsed.workflow_id || "",
+                event_type: parsed.event_type || "LOG",
                 protocol: parsed.protocol,
-                message: parsed.message || "",
+                data: parsed.data,
                 timestamp: parsed.timestamp || new Date().toISOString(),
-                result: parsed.result,
               };
 
               if (parsed.workflow_id && !workflowId) {
@@ -115,8 +127,8 @@ export const ExecutionViewer = ({ prompt, onBack }: ExecutionViewerProps) => {
 
               addEvent(evt);
 
-              if (evt.type === "COMPLETED") setStatus("completed");
-              if (evt.type === "ERROR") setStatus("error");
+              if (evt.event_type === "COMPLETED") setStatus("completed");
+              if (evt.event_type === "ERROR") setStatus("error");
             } catch {}
           }
         }
@@ -127,9 +139,10 @@ export const ExecutionViewer = ({ prompt, onBack }: ExecutionViewerProps) => {
         if (err instanceof Error && err.name === "AbortError") return;
         addEvent({
           id: crypto.randomUUID(),
-          type: "ERROR",
+          workflow_id: "",
+          event_type: "ERROR",
           protocol: "SYSTEM",
-          message: err instanceof Error ? err.message : "Connection failed",
+          data: { error: err instanceof Error ? err.message : "Connection failed" },
           timestamp: new Date().toISOString(),
         });
         setStatus("error");
@@ -233,7 +246,7 @@ export const ExecutionViewer = ({ prompt, onBack }: ExecutionViewerProps) => {
                 initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.25 }}
-                className={`rounded-lg p-4 ${eventBorder[evt.type] || "bg-secondary/30"}`}
+                className={`rounded-lg p-4 ${eventBorder[evt.event_type] || "bg-secondary/30"}`}
               >
                 <div className="flex items-start gap-3">
                   {/* Protocol Badge */}
@@ -247,20 +260,20 @@ export const ExecutionViewer = ({ prompt, onBack }: ExecutionViewerProps) => {
 
                   <div className="flex-1 min-w-0">
                     <span className="font-semibold text-foreground text-sm">
-                      {evt.type}
+                      {evt.event_type}
                     </span>
-                    <p className="text-sm text-muted-foreground mt-0.5">{evt.message}</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">{getEventMessage(evt)}</p>
 
                     {/* Final Result */}
-                    {evt.type === "COMPLETED" && evt.result && (
+                    {evt.event_type === "COMPLETED" && getEventResult(evt) && (
                       <div className="border-t border-border pt-3 mt-3">
                         <p className="text-sm font-semibold text-protocol-green">
                           🎉 Final Result:
                         </p>
                         <pre className="text-lg font-bold text-foreground mt-1 whitespace-pre-wrap font-mono">
-                          {typeof evt.result === "object"
-                            ? JSON.stringify(evt.result, null, 2)
-                            : String(evt.result)}
+                          {typeof getEventResult(evt) === "object"
+                            ? JSON.stringify(getEventResult(evt), null, 2)
+                            : String(getEventResult(evt))}
                         </pre>
                       </div>
                     )}
