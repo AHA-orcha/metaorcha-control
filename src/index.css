@@ -9,64 +9,72 @@
 
 @layer base {
   :root {
-    /* Core - Pure white/black for max contrast */
+    /* Core */
     --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
+    --foreground: 234 16% 15%;
 
-    /* Cards - Clean white with subtle distinction */
+    /* Cards */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
+    --card-foreground: 234 16% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
+    --popover-foreground: 234 16% 15%;
 
-    /* Primary - Pure black for Swiss design boldness */
-    --primary: 0 0% 0%;
+    /* Primary - Indigo */
+    --primary: 239 84% 67%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Light gray for subtle backgrounds */
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 0%;
+    /* Secondary */
+    --secondary: 240 20% 96%;
+    --secondary-foreground: 234 16% 15%;
 
-    /* Muted - For inactive states */
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
+    /* Muted */
+    --muted: 240 20% 96%;
+    --muted-foreground: 234 10% 45%;
 
-    /* Accent - Protocol blue (Ethereum-inspired) */
-    --accent: 217 91% 60%;
+    /* Accent - Purple */
+    --accent: 270 76% 62%;
     --accent-foreground: 0 0% 100%;
 
-    /* Protocol status colors */
+    /* Protocol colors */
     --protocol-blue: 217 91% 60%;
     --protocol-green: 142 71% 45%;
     --protocol-red: 0 84% 60%;
     --protocol-yellow: 45 93% 47%;
+    --protocol-purple: 270 76% 62%;
+    --protocol-orange: 25 95% 53%;
+
+    /* Gradient tokens */
+    --gradient-start: 239 84% 67%;
+    --gradient-end: 270 76% 62%;
+    --hero-bg-start: 226 100% 97%;
+    --hero-bg-end: 270 100% 97%;
 
     /* Destructive */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Borders - Crisp 1px aesthetic */
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 0 0% 0%;
+    /* Borders */
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 239 84% 67%;
 
-    /* Console - Dark for contrast */
-    --console-bg: 0 0% 8%;
+    /* Console */
+    --console-bg: 234 30% 8%;
     --console-fg: 0 0% 90%;
     --console-muted: 0 0% 50%;
 
-    --radius: 0.25rem;
+    --radius: 0.75rem;
 
     /* Sidebar */
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 0%;
-    --sidebar-primary: 0 0% 0%;
+    --sidebar-foreground: 234 16% 15%;
+    --sidebar-primary: 239 84% 67%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 96%;
-    --sidebar-accent-foreground: 0 0% 0%;
-    --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 0 0% 0%;
+    --sidebar-accent: 240 20% 96%;
+    --sidebar-accent-foreground: 234 16% 15%;
+    --sidebar-border: 240 6% 90%;
+    --sidebar-ring: 239 84% 67%;
   }
 }
 
@@ -92,9 +100,27 @@
 }
 
 @layer components {
-  /* Protocol card - clean 1px border aesthetic */
+  /* Protocol card */
   .protocol-card {
-    @apply bg-card border border-border rounded-sm;
+    @apply bg-card border border-border rounded-2xl shadow-xl;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(var(--gradient-start)), hsl(var(--gradient-end)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Hero gradient background */
+  .hero-gradient {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--hero-bg-start)) 0%,
+      hsl(var(--background)) 50%,
+      hsl(var(--hero-bg-end)) 100%
+    );
   }
 
   /* Console container */
@@ -111,14 +137,14 @@
   .pulse-dot::before {
     content: '';
     @apply absolute w-2 h-2 rounded-full;
-    background: hsl(var(--protocol-blue));
+    background: hsl(var(--primary));
     animation: pulse-ring 1.5s ease-out infinite;
   }
 
   .pulse-dot::after {
     content: '';
     @apply absolute w-2 h-2 rounded-full;
-    background: hsl(var(--protocol-blue));
+    background: hsl(var(--primary));
   }
 
   @keyframes pulse-ring {
