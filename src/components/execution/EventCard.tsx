@@ -38,17 +38,19 @@ interface EventCardProps {
 
 export const EventCard = ({ event: evt }: EventCardProps) => (
   <motion.div
-    key={evt.id}
     initial={{ opacity: 0, x: 30 }}
     animate={{ opacity: 1, x: 0 }}
     transition={{ duration: 0.25 }}
     className={`rounded-lg p-4 ${eventBorder[evt.event_type] || "bg-secondary/30"}`}
+    role="article"
+    aria-label={`${evt.event_type} event${evt.protocol ? ` via ${evt.protocol}` : ""}: ${getEventMessage(evt)}`}
   >
     <div className="flex items-start gap-3">
       {/* Protocol Badge */}
       {evt.protocol && protocolBadge[evt.protocol] && (
         <span
           className={`px-2 py-1 text-xs font-bold rounded border shrink-0 ${protocolBadge[evt.protocol].bg} ${protocolBadge[evt.protocol].text} ${protocolBadge[evt.protocol].border}`}
+          aria-label={`Protocol: ${evt.protocol}`}
         >
           {evt.protocol}
         </span>
@@ -72,9 +74,9 @@ export const EventCard = ({ event: evt }: EventCardProps) => (
       </div>
 
       {/* Timestamp */}
-      <span className="text-xs text-muted-foreground shrink-0 font-mono">
+      <time className="text-xs text-muted-foreground shrink-0 font-mono" dateTime={evt.timestamp}>
         {formatTime(evt.timestamp)}
-      </span>
+      </time>
     </div>
   </motion.div>
 );

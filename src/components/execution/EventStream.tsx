@@ -24,6 +24,10 @@ export const EventStream = ({ events, status }: EventStreamProps) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
       className="protocol-card w-full max-w-3xl overflow-hidden"
+      role="log"
+      aria-label="Workflow event stream"
+      aria-live="polite"
+      aria-relevant="additions"
     >
       <div ref={scrollRef} className="max-h-96 overflow-y-auto p-4 space-y-3">
         <AnimatePresence mode="popLayout">
