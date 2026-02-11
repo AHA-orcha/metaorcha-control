@@ -40,44 +40,49 @@ serve(async (req) => {
 
     const body = new ReadableStream({
       async start(controller) {
-        const send = (data: Record<string, unknown>) => {
-          controller.enqueue(new TextEncoder().encode(sseEvent(data)));
+        const send = (evt: { event_type: string; protocol?: string; data?: Record<string, unknown> }) => {
+          controller.enqueue(
+            new TextEncoder().encode(
+              sseEvent({
+                workflow_id: workflowId,
+                event_type: evt.event_type,
+                protocol: evt.protocol,
+                data: evt.data,
+                timestamp: new Date().toISOString(),
+              })
+            )
+          );
         };
 
         try {
-          // Phase 1: System initialization
-          send({ type: "LOG", protocol: "SYSTEM", message: "Initializing MetaOrcha orchestration engine...", timestamp: new Date().toISOString(), workflow_id: workflowId });
+          send({ event_type: "LOG", protocol: "SYSTEM", data: { message: "Initializing MetaOrcha orchestration engine..." } });
           await sleep(400);
 
-          send({ type: "LOG", protocol: "SYSTEM", message: `Workflow ${workflowId.slice(0, 8)} created`, timestamp: new Date().toISOString(), workflow_id: workflowId });
+          send({ event_type: "LOG", protocol: "SYSTEM", data: { message: `Workflow ${workflowId.slice(0, 8)} created` } });
           await sleep(300);
 
-          // Phase 2: MCP agent setup
-          send({ type: "LOG", protocol: "MCP", message: "Connecting MCP agent via stdio/JSON-RPC...", timestamp: new Date().toISOString(), workflow_id: workflowId });
+          send({ event_type: "LOG", protocol: "MCP", data: { message: "Connecting MCP agent via stdio/JSON-RPC..." } });
           await sleep(500);
 
-          send({ type: "LOG", protocol: "MCP", message: "MCP handshake complete. Tools registered: [calculate, parse, format]", timestamp: new Date().toISOString(), workflow_id: workflowId });
+          send({ event_type: "LOG", protocol: "MCP", data: { message: "MCP handshake complete. Tools registered: [calculate, parse, format]" } });
           await sleep(300);
 
-          // Phase 3: A2A agent setup
-          send({ type: "LOG", protocol: "A2A", message: "Discovering A2A agents via HTTP/REST...", timestamp: new Date().toISOString(), workflow_id: workflowId });
+          send({ event_type: "LOG", protocol: "A2A", data: { message: "Discovering A2A agents via HTTP/REST..." } });
           await sleep(400);
 
-          send({ type: "LOG", protocol: "A2A", message: "A2A agent 'TextConverter-01' connected. Capabilities: [text-transform, number-to-words]", timestamp: new Date().toISOString(), workflow_id: workflowId });
+          send({ event_type: "LOG", protocol: "A2A", data: { message: "A2A agent 'TextConverter-01' connected. Capabilities: [text-transform, number-to-words]" } });
           await sleep(300);
 
-          // Phase 4: Task decomposition
-          send({ type: "LOG", protocol: "SYSTEM", message: `Decomposing task: "${prompt}"`, timestamp: new Date().toISOString(), workflow_id: workflowId });
+          send({ event_type: "LOG", protocol: "SYSTEM", data: { message: `Decomposing task: "${prompt}"` } });
           await sleep(400);
 
-          send({ type: "LOG", protocol: "SYSTEM", message: "Task decomposed into 2 subtasks", timestamp: new Date().toISOString(), workflow_id: workflowId });
+          send({ event_type: "LOG", protocol: "SYSTEM", data: { message: "Task decomposed into 2 subtasks" } });
           await sleep(300);
 
-          // Phase 5: MCP execution — call AI for the computation
-          send({ type: "LOG", protocol: "MCP", message: "MCP Agent executing computation subtask...", timestamp: new Date().toISOString(), workflow_id: workflowId });
+          send({ event_type: "LOG", protocol: "MCP", data: { message: "MCP Agent executing computation subtask..." } });
           await sleep(300);
 
-          // Call Lovable AI for the actual work
+          // Call Lovable AI
           const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -102,18 +107,18 @@ serve(async (req) => {
 
           if (!aiResponse.ok) {
             if (aiResponse.status === 429) {
-              send({ type: "ERROR", protocol: "SYSTEM", message: "Rate limit exceeded. Please try again later.", timestamp: new Date().toISOString(), workflow_id: workflowId });
+              send({ event_type: "ERROR", protocol: "SYSTEM", data: { error: "Rate limit exceeded. Please try again later." } });
               controller.close();
               return;
             }
             if (aiResponse.status === 402) {
-              send({ type: "ERROR", protocol: "SYSTEM", message: "AI credits exhausted. Please add funds.", timestamp: new Date().toISOString(), workflow_id: workflowId });
+              send({ event_type: "ERROR", protocol: "SYSTEM", data: { error: "AI credits exhausted. Please add funds." } });
               controller.close();
               return;
             }
             const errText = await aiResponse.text();
             console.error("AI error:", aiResponse.status, errText);
-            send({ type: "ERROR", protocol: "SYSTEM", message: "AI processing failed", timestamp: new Date().toISOString(), workflow_id: workflowId });
+            send({ event_type: "ERROR", protocol: "SYSTEM", data: { error: "AI processing failed" } });
             controller.close();
             return;
           }
@@ -121,47 +126,38 @@ serve(async (req) => {
           const aiData = await aiResponse.json();
           const rawContent = aiData.choices?.[0]?.message?.content || "";
 
-          send({ type: "LOG", protocol: "MCP", message: "MCP Agent computation complete", timestamp: new Date().toISOString(), workflow_id: workflowId });
+          send({ event_type: "LOG", protocol: "MCP", data: { message: "MCP Agent computation complete" } });
           await sleep(300);
 
-          // Phase 6: A2A conversion
-          send({ type: "LOG", protocol: "A2A", message: "A2A Agent 'TextConverter-01' processing result...", timestamp: new Date().toISOString(), workflow_id: workflowId });
+          send({ event_type: "LOG", protocol: "A2A", data: { message: "A2A Agent 'TextConverter-01' processing result..." } });
           await sleep(500);
 
-          send({ type: "LOG", protocol: "A2A", message: "Text conversion complete", timestamp: new Date().toISOString(), workflow_id: workflowId });
+          send({ event_type: "LOG", protocol: "A2A", data: { message: "Text conversion complete" } });
           await sleep(300);
 
-          // Phase 7: Result aggregation
-          send({ type: "LOG", protocol: "SYSTEM", message: "Aggregating results from all agents...", timestamp: new Date().toISOString(), workflow_id: workflowId });
+          send({ event_type: "LOG", protocol: "SYSTEM", data: { message: "Aggregating results from all agents..." } });
           await sleep(400);
 
           // Parse AI result
           let result: unknown;
           try {
-            // Strip markdown code fences if present
             const cleaned = rawContent.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
             result = JSON.parse(cleaned);
           } catch {
             result = { raw_response: rawContent };
           }
 
-          // Final completion
           send({
-            type: "COMPLETED",
+            event_type: "COMPLETED",
             protocol: "SYSTEM",
-            message: "Workflow completed successfully",
-            result,
-            timestamp: new Date().toISOString(),
-            workflow_id: workflowId,
+            data: { message: "Workflow completed successfully", result },
           });
         } catch (err) {
           console.error("Stream error:", err);
           send({
-            type: "ERROR",
+            event_type: "ERROR",
             protocol: "SYSTEM",
-            message: err instanceof Error ? err.message : "Unknown error",
-            timestamp: new Date().toISOString(),
-            workflow_id: workflowId,
+            data: { error: err instanceof Error ? err.message : "Unknown error" },
           });
         } finally {
           controller.close();
