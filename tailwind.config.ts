@@ -66,6 +66,8 @@ export default {
           green: "hsl(var(--protocol-green))",
           red: "hsl(var(--protocol-red))",
           yellow: "hsl(var(--protocol-yellow))",
+          purple: "hsl(var(--protocol-purple))",
+          orange: "hsl(var(--protocol-orange))",
         },
         console: {
           bg: "hsl(var(--console-bg))",

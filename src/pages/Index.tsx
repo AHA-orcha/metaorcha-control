@@ -27,10 +27,10 @@ const Index = () => {
       
       <main className="ml-16 min-h-screen">
         {/* Top Bar */}
-        <header className="h-14 border-b border-border px-6 flex items-center justify-between">
+        <header className="h-14 border-b border-border px-6 flex items-center justify-between bg-card/80 backdrop-blur-sm">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-lg tracking-tight">MetaOrcha</span>
-            <span className="text-xs font-mono text-muted-foreground bg-secondary px-2 py-0.5 rounded-sm">
+            <span className="font-extrabold text-lg tracking-tight gradient-text">MetaOrcha</span>
+            <span className="text-xs font-mono text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
               TESTNET
             </span>
           </div>
