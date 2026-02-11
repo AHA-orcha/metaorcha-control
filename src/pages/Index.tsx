@@ -1,25 +1,9 @@
-import { useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
-import { NewWorkflow } from "@/components/NewWorkflow";
-import { ExecutionViewer } from "@/components/ExecutionViewer";
+import { WorkflowExecutor } from "@/components/WorkflowExecutor";
 import { useAuth } from "@/contexts/AuthContext";
 
-type View = "new-workflow" | "execution";
-
 const Index = () => {
-  const [currentView, setCurrentView] = useState<View>("new-workflow");
-  const [executionPrompt, setExecutionPrompt] = useState("");
   const { user } = useAuth();
-
-  const handleInitialize = (prompt: string) => {
-    setExecutionPrompt(prompt);
-    setCurrentView("execution");
-  };
-
-  const handleBackToWorkflow = () => {
-    setCurrentView("new-workflow");
-    setExecutionPrompt("");
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -46,15 +30,7 @@ const Index = () => {
 
         {/* Content */}
         <div className="p-6 h-[calc(100vh-3.5rem)]">
-          {currentView === "new-workflow" && (
-            <NewWorkflow onInitialize={handleInitialize} />
-          )}
-          {currentView === "execution" && (
-            <ExecutionViewer 
-              prompt={executionPrompt} 
-              onBack={handleBackToWorkflow}
-            />
-          )}
+          <WorkflowExecutor />
         </div>
       </main>
     </div>
