@@ -3,6 +3,7 @@ import { HeroSection } from "./workflow/HeroSection";
 import { WorkflowInputCard } from "./workflow/WorkflowInputCard";
 import { ProtocolLegend } from "./workflow/ProtocolLegend";
 import { ExecutionViewer } from "./ExecutionViewer";
+import { MockPreview } from "./execution/MockPreview";
 
 export const WorkflowExecutor = () => {
   const [workflowId, setWorkflowId] = useState<string | null>(null);
@@ -53,7 +54,11 @@ export const WorkflowExecutor = () => {
   }, []);
 
   return (
-    <div className="hero-gradient min-h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center px-6 -m-6 py-12">
+    <main
+      className="hero-gradient min-h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center px-4 sm:px-6 -m-6 py-12"
+      role="main"
+      aria-label="MetaOrcha Workflow Executor"
+    >
       <HeroSection />
       <WorkflowInputCard
         onSubmit={handleSubmit}
@@ -61,15 +66,17 @@ export const WorkflowExecutor = () => {
         error={error}
       />
 
-      {workflowId && (
+      {workflowId ? (
         <ExecutionViewer
           workflowId={workflowId}
           prompt={prompt}
           onComplete={handleExecutionComplete}
         />
+      ) : (
+        <MockPreview />
       )}
 
       <ProtocolLegend />
-    </div>
+    </main>
   );
 };

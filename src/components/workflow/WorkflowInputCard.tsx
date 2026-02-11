@@ -27,16 +27,21 @@ export const WorkflowInputCard = ({ onSubmit, isExecuting, error }: WorkflowInpu
       transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
       className="protocol-card w-full max-w-2xl p-8"
     >
-      <form onSubmit={handleSubmit}>
-        <label className="block text-sm font-semibold text-foreground mb-2">
+      <form onSubmit={handleSubmit} role="form" aria-label="Workflow submission">
+        <label
+          htmlFor="workflow-prompt"
+          className="block text-sm font-semibold text-foreground mb-2"
+        >
           What would you like the agents to do?
         </label>
         <textarea
+          id="workflow-prompt"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           rows={4}
+          aria-describedby="example-queries-label"
           placeholder={`e.g. "Calculate 5+3 and convert the result to words"\ne.g. "Multiply 6 by 7 then convert to English"`}
           className={`w-full rounded-xl px-4 py-3 text-sm resize-none outline-none bg-card transition-all duration-200 border-2 ${
             isFocused
