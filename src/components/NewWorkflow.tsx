@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Info, Zap, Network } from "lucide-react";
+import { ArrowRight, Info, Zap, Network, Loader2, AlertCircle } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -11,15 +11,23 @@ interface NewWorkflowProps {
   onInitialize: (prompt: string) => void;
 }
 
+const exampleQueries = [
+  "Calculate 5+3 and convert to words",
+  "Multiply 8 times 4 and show as text",
+  "Divide 20 by 4 then convert result",
+];
+
 export const NewWorkflow = ({ onInitialize }: NewWorkflowProps) => {
   const [prompt, setPrompt] = useState("");
   const [isFocused, setIsFocused] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (prompt.trim()) {
-      onInitialize(prompt);
-    }
+    if (!prompt.trim() || isSubmitting) return;
+    setError(null);
+    onInitialize(prompt);
   };
 
   return (
@@ -76,9 +84,7 @@ export const NewWorkflow = ({ onInitialize }: NewWorkflowProps) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
-        className={`protocol-card w-full max-w-2xl p-8 transition-shadow duration-200 ${
-          isFocused ? "shadow-2xl ring-2 ring-primary/20" : ""
-        }`}
+        className="protocol-card w-full max-w-2xl p-8"
       >
         <form onSubmit={handleSubmit}>
           <label className="block text-sm font-semibold text-foreground mb-2">
@@ -90,49 +96,90 @@ export const NewWorkflow = ({ onInitialize }: NewWorkflowProps) => {
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             rows={4}
-            placeholder={`e.g. "Research the latest AI news and create a summary report"\ne.g. "Analyze this dataset and generate visualizations"\ne.g. "Draft a project proposal based on these requirements"`}
-            className="w-full bg-secondary/50 border border-input rounded-xl px-4 py-3 text-sm resize-none outline-none placeholder:text-muted-foreground/50 focus:border-primary/40 transition-colors"
+            placeholder={`e.g. "Calculate 5+3 and convert the result to words"\ne.g. "Multiply 6 by 7 then convert to English"`}
+            className={`w-full rounded-xl px-4 py-3 text-sm resize-none outline-none bg-card transition-all duration-200 border-2 ${
+              isFocused
+                ? "border-primary ring-2 ring-primary/30 border-transparent"
+                : "border-border"
+            } placeholder:text-muted-foreground/50`}
           />
 
-          <div className="flex items-center justify-between mt-5">
-            <div className="flex items-center gap-4 text-xs text-muted-foreground font-mono">
-              <span>Agents: Auto-assigned</span>
-              <span className="text-border">•</span>
-              <span>Protocol: A2A + MCP</span>
+          {/* Example Queries */}
+          <div className="mt-3">
+            <span className="text-sm text-muted-foreground">Try these examples:</span>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {exampleQueries.map((q) => (
+                <button
+                  key={q}
+                  type="button"
+                  onClick={() => setPrompt(q)}
+                  className="px-4 py-2 text-sm rounded-full bg-secondary hover:bg-secondary/70 text-foreground/80 transition-colors cursor-pointer"
+                >
+                  {q}
+                </button>
+              ))}
             </div>
-
-            <motion.button
-              type="submit"
-              disabled={!prompt.trim()}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-medium text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors hover:opacity-90"
-            >
-              Initialize Agent Swarm
-              <ArrowRight className="w-4 h-4" />
-            </motion.button>
           </div>
+
+          {/* Execute Button */}
+          <motion.button
+            type="submit"
+            disabled={!prompt.trim() || isSubmitting}
+            whileHover={prompt.trim() && !isSubmitting ? { y: -2 } : {}}
+            whileTap={prompt.trim() && !isSubmitting ? { scale: 0.98 } : {}}
+            className={`w-full mt-6 py-4 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
+              !prompt.trim() || isSubmitting
+                ? "bg-muted text-muted-foreground cursor-not-allowed"
+                : "bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg hover:shadow-xl"
+            }`}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Executing Workflow...
+              </>
+            ) : (
+              <>
+                Execute Workflow
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </motion.button>
+
+          {/* Error Banner */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 p-4 rounded-lg border-l-4 border-destructive bg-destructive/5 flex items-start gap-3"
+            >
+              <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+              <p className="text-sm text-destructive">{error}</p>
+            </motion.div>
+          )}
         </form>
       </motion.div>
 
-      {/* Status Bar */}
+      {/* Protocol Legend Footer */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.35 }}
-        className="mt-8 flex items-center gap-6 text-xs text-muted-foreground font-mono"
+        className="mt-8"
       >
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-protocol-green" />
-          <span>Network: Active</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-primary" />
-          <span>Agents: 12 Available</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-muted-foreground" />
-          <span>Block: #1,847,293</span>
+        <div className="inline-flex items-center gap-6 bg-card rounded-full shadow-md px-6 py-3">
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 text-xs font-bold rounded border bg-protocol-purple/10 text-protocol-purple border-protocol-purple/20">
+              MCP
+            </span>
+            <span className="text-xs text-muted-foreground font-mono">stdio/JSON-RPC</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 text-xs font-bold rounded border bg-protocol-orange/10 text-protocol-orange border-protocol-orange/20">
+              A2A
+            </span>
+            <span className="text-xs text-muted-foreground font-mono">HTTP/REST API</span>
+          </div>
         </div>
       </motion.div>
     </div>

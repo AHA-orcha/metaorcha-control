@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { NewWorkflow } from "@/components/NewWorkflow";
-import { LiveExecution } from "@/components/LiveExecution";
+import { ExecutionViewer } from "@/components/ExecutionViewer";
 import { useAuth } from "@/contexts/AuthContext";
 
 type View = "new-workflow" | "execution";
@@ -50,7 +50,7 @@ const Index = () => {
             <NewWorkflow onInitialize={handleInitialize} />
           )}
           {currentView === "execution" && (
-            <LiveExecution 
+            <ExecutionViewer 
               prompt={executionPrompt} 
               onBack={handleBackToWorkflow}
             />
