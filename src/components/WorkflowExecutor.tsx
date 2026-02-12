@@ -5,6 +5,8 @@ import { ProtocolLegend } from "./workflow/ProtocolLegend";
 import { ExecutionViewer } from "./ExecutionViewer";
 import { MockPreview } from "./execution/MockPreview";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+
 export const WorkflowExecutor = () => {
   const [workflowId, setWorkflowId] = useState<string | null>(null);
   const [prompt, setPrompt] = useState("");
@@ -18,7 +20,7 @@ export const WorkflowExecutor = () => {
     setWorkflowId(null);
 
     try {
-      const resp = await fetch("http://localhost:8000/api/v1/workflows", {
+      const resp = await fetch(`${BACKEND_URL}/api/v1/workflows`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: inputPrompt }),
