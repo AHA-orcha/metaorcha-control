@@ -12,6 +12,8 @@ interface ExecutionViewerProps {
   onComplete: () => void;
 }
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+
 export const ExecutionViewer = ({ workflowId, prompt, onComplete }: ExecutionViewerProps) => {
   const [events, setEvents] = useState<WorkflowEvent[]>([]);
   const [status, setStatus] = useState<"running" | "completed" | "error">("running");
@@ -23,7 +25,7 @@ export const ExecutionViewer = ({ workflowId, prompt, onComplete }: ExecutionVie
   // SSE connection via EventSource
   useEffect(() => {
     const eventSource = new EventSource(
-      `http://localhost:8000/api/v1/workflows/${workflowId}/stream`
+      `${BACKEND_URL}/api/v1/workflows/${workflowId}/stream`
     );
 
     eventSource.onmessage = (event) => {
