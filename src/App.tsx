@@ -9,6 +9,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminMetrics from "./pages/AdminMetrics";
 import AdminAgents from "./pages/AdminAgents";
 import AdminApiKeys from "./pages/AdminApiKeys";
+import NotionResearch from "./pages/NotionResearch";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
         <TopNav />
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/notion-research" element={<NotionResearch />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/metrics" element={<AdminMetrics />} />
           <Route path="/admin/agents" element={<AdminAgents />} />

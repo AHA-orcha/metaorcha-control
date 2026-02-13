@@ -1,5 +1,15 @@
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
 
+// Environment detection
+export const IS_MOCK_MODE = 
+  import.meta.env.VITE_USE_MOCK_DATA === 'true' || 
+  !import.meta.env.VITE_BACKEND_URL || 
+  import.meta.env.VITE_BACKEND_URL.includes('localhost');
+
+if (IS_MOCK_MODE) {
+  console.log('🎭 Running in MOCK MODE - using demo data');
+}
+
 export interface ServiceHealth {
   name: string;
   status: "healthy" | "degraded" | "down";
@@ -41,11 +51,23 @@ export interface Agent {
 
 // Fetch with fallback to mock data for demo
 async function safeFetch<T>(url: string, fallback: T): Promise<T> {
+  // If explicitly in mock mode, skip fetch
+  if (IS_MOCK_MODE) {
+    console.log(`🎭 Mock mode: returning mock data for ${url}`);
+    return fallback;
+  }
+  
   try {
     const res = await fetch(url);
-    if (!res.ok) throw new Error();
-    return await res.json();
-  } catch {
+    if (!res.ok) {
+      console.warn(`⚠️ API call failed (${res.status}), using mock data`);
+      throw new Error();
+    }
+    const data = await res.json();
+    console.log(`✅ Real data fetched from ${url}`);
+    return data;
+  } catch (error) {
+    console.warn(`⚠️ Backend unreachable, using mock data for ${url}`);
     return fallback;
   }
 }
@@ -87,6 +109,14 @@ const MOCK_STATS: WorkflowStats = {
 };
 
 const MOCK_AGENTS: Agent[] = [
+  { 
+    id: "did:emerge:agent:notion-research-01", 
+    name: "Notion Research", 
+    protocol: "MCP", 
+    version: "1.0.0", 
+    status: "active", 
+    capabilities: ["create_research_note", "add_tradingview_chart", "fetch_market_data", "search_web", "orchestrate_research"] 
+  },
   { id: "a1", name: "Calculator", protocol: "MCP", version: "1.2.0", status: "active", capabilities: ["add", "subtract", "multiply", "divide"] },
   { id: "a2", name: "Number2Words", protocol: "A2A", version: "2.0.1", status: "active", capabilities: ["convert", "localize"] },
   { id: "a3", name: "FileReader", protocol: "MCP", version: "1.0.0", status: "active", capabilities: ["read", "list", "search"] },

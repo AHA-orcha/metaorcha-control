@@ -1,9 +1,10 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, Shield, BarChart3, Bot, Key } from "lucide-react";
+import { Home, Shield, BarChart3, Bot, Key, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { path: "/", label: "Home", icon: Home },
+  { path: "/notion-research", label: "Research", icon: BookOpen },
   { path: "/admin", label: "Overview", icon: Shield },
   { path: "/admin/metrics", label: "Metrics", icon: BarChart3 },
   { path: "/admin/agents", label: "Agents", icon: Bot },
