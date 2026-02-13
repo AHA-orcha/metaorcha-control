@@ -3,73 +3,33 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import { TopNav } from "@/components/TopNav";
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import DeveloperPortal from "./pages/DeveloperPortal";
-import AdminPanel from "./pages/AdminPanel";
-import ActivityLog from "./pages/ActivityLog";
-import Credentials from "./pages/Credentials";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminMetrics from "./pages/AdminMetrics";
+import AdminAgents from "./pages/AdminAgents";
+import AdminApiKeys from "./pages/AdminApiKeys";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/developer"
-              element={
-                <ProtectedRoute allowedRoles={['developer', 'admin']}>
-                  <DeveloperPortal />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <AdminPanel />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/activity"
-              element={
-                <ProtectedRoute>
-                  <ActivityLog />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/credentials"
-              element={
-                <ProtectedRoute>
-                  <Credentials />
-                </ProtectedRoute>
-              }
-            />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <TopNav />
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/metrics" element={<AdminMetrics />} />
+          <Route path="/admin/agents" element={<AdminAgents />} />
+          <Route path="/admin/api-keys" element={<AdminApiKeys />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
   </QueryClientProvider>
 );
 
