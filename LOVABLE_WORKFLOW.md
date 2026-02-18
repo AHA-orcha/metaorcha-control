@@ -46,7 +46,7 @@
 
 **2. metaorcha-emerge** (Backend):
 - **GitHub**: https://github.com/AHA-orcha/metaorcha-emerge  
-- **Branch**: az/mvp/gateway-core (currently)
+- **Branch**: az/mvp-core
 - **NOT in Lovable**: Backend services only
 - **Location**: `/workspaces/metaorcha-emerge/`
 - **Contains**: Gateway, Registry, Runtime, Agents
@@ -178,7 +178,7 @@ docker-compose up -d
 # Commit to metaorcha-emerge repo
 git add .
 git commit -m "Update gateway"
-git push origin az/mvp/gateway-core
+git push origin az/mvp-core
 ```
 
 ## 🤔 Can Backend Run on Lovable?
@@ -280,15 +280,15 @@ git remote -v
 # origin  https://github.com/AHA-orcha/metaorcha-emerge.git
 
 # Work on feature branch
-git checkout az/mvp/gateway-core
+git checkout az/mvp-core
 
 # Pull latest
-git pull origin az/mvp/gateway-core
+git pull origin az/mvp-core
 
 # Make changes, commit, push
 git add services/gateway/
 git commit -m "Update backend"
-git push origin az/mvp/gateway-core
+git push origin az/mvp-core
 ```
 
 ### Preventing Sync Issues
@@ -324,9 +324,9 @@ git push origin az/mvp/gateway-core
 
 **Before Editing Backend**:
 - [ ] `cd /workspaces/metaorcha-emerge/`
-- [ ] `git pull origin az/mvp/gateway-core`
+- [ ] `git pull origin az/mvp-core`
 - [ ] Edit files (services/, agents/, etc.)
-- [ ] `git push origin az/mvp/gateway-core`
+- [ ] `git push origin az/mvp-core`
 - [ ] Test locally with Docker
 
 ## 🚀 Complete Development Loop
@@ -367,7 +367,7 @@ docker-compose restart gateway
 cd ../
 git add services/gateway/
 git commit -m "Add new feature endpoint"
-git push origin az/mvp/gateway-core
+git push origin az/mvp-core
 
 # 4. Deploy backend (when ready)
 # Deploy to Fly.io (separate step)
